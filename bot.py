@@ -1,6 +1,8 @@
+import os
 import telebot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 import threading
+from flask import Flask
 
 # Your specific Bot Token
 BOT_TOKEN = '8975252286:AAFZ3my-cRD5fSMsTuxyxX4ufpAxWQF1-9k'
@@ -33,10 +35,8 @@ def send_message_sequence(chat_id):
     try:
         messages_to_delete = []
         
-        # 1. Send all videos and save their IDs
         for video_id in TUTORIAL_VIDEOS:
             try:
-                # We save the result to 'msg' so we can extract the message_id
                 msg = bot.send_video(
                     chat_id=chat_id,
                     video=video_id,
@@ -46,7 +46,6 @@ def send_message_sequence(chat_id):
             except Exception as e:
                 print(f"Error sending a video: {e}")
         
-        # 2. Send the warning message (and save its ID so it gets deleted too!)
         warning_msg = bot.send_message(
             chat_id, 
             "⚠️ <b>URGENT:</b> These videos will be permanently deleted in exactly 1 minute. Please watch them immediately!",
@@ -54,7 +53,6 @@ def send_message_sequence(chat_id):
         )
         messages_to_delete.append(warning_msg.message_id)
 
-        # 3. Send the final styled card
         card_text = (
             "<blockquote>"
             "🔴 For getting Full access to these videos.\n\n"
@@ -66,17 +64,13 @@ def send_message_sequence(chat_id):
             "</blockquote>"
         )
         
-        # 4. Build the redirect button with pre-filled text
         markup = InlineKeyboardMarkup()
-        
         dm_url = "https://t.me/raushanii00?text=I%20want%20to%20buy%20the%201%20month%20pass"
-        
         btn = InlineKeyboardButton("MESSAGE HERE :- for exclusive offers", url=dm_url)
         markup.add(btn)
         
         bot.send_message(chat_id, card_text, reply_markup=markup, parse_mode="HTML")
         
-        # 5. Start the countdown to delete the videos and warning (60 seconds)
         delete_timer = threading.Timer(60, delete_videos, args=[chat_id, messages_to_delete])
         delete_timer.start()
         
@@ -86,14 +80,27 @@ def send_message_sequence(chat_id):
 @bot.message_handler(commands=['start'])
 def welcome_user(message):
     chat_id = message.chat.id
-    
     bot.send_message(
         chat_id, 
         "Welcome! 🎓\n\nYour exclusive content is arriving now. Please watch immediately, as the videos will be deleted in 60 seconds."
     )
-    
-    # Send the videos INSTANTLY (Using a thread ensures the bot doesn't freeze for other users)
     threading.Thread(target=send_message_sequence, args=(chat_id,)).start()
 
-print("Bot is running! Waiting for /start commands...")
-bot.infinity_polling()
+# --- FLASK WEB SERVER FOR RENDER ---
+app = Flask(__name__)
+
+@app.route('/')
+def home():
+    return "Bot is alive and running!"
+
+def run_web():
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)
+# -----------------------------------
+
+if __name__ == "__main__":
+    # Start the dummy web server in a separate thread
+    threading.Thread(target=run_web).start()
+    
+    print("Bot is running! Waiting for /start commands...")
+    bot.infinity_polling()
