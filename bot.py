@@ -2,11 +2,11 @@ import telebot
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
 import threading
 
-# Your specific Bot Token
+# Bot Token
 BOT_TOKEN = '8975252286:AAFZ3my-cRD5fSMsTuxyxX4ufpAxWQF1-9k'
 bot = telebot.TeleBot(BOT_TOKEN)
 
-# Your correct Telegram Video file_ids
+#  Telegram file_ids
 TUTORIAL_VIDEOS = [
     "BAACAgUAAxkBAAMGapfONyoeKrzcpgABSHkbDn842c7aAAK3HwACq5fBVB77wBnHXV8PPQQ",
     "BAACAgUAAxkBAAMHapfONyq5A0u0i6z1kSwbMwrbauIAArgfAAKrl8FUoHlp7AP1vds9BA",
